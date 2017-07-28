@@ -1,0 +1,56 @@
+/*!
+ * jQuery MotionCAPTCHA Plugin CSS v1.0
+ *
+ * Concept and Development by Joss Crowcroft
+ * http://www.josscrowcroft.com
+ *
+ * Adapted and modified by Manuel Fernandez
+ * http://papayalabs.github.io
+ * 
+ * Copyright (c) 2017 Papaya Labs | http://papayalabs.github.io
+ * 
+ * Incoporates other open source projects, attributed below.
+ *
+ * Only these rules are absolutely necessary for the plugin.
+ * NB. The width & height of the canvas can be flexible to fit your layout but there's a recommended min/max
+ * - if you need it much bigger/smaller, you could tweak the background-positions of the shape classes.
+ */
+
+/* The canvas: */
+#mc-canvas {
+	width:220px;  /* For best results, set width to between 210px and 240px */
+	height:154px; /* For best results, set height to between 140px and 170px */
+	background:#fff -9999px -9999px no-repeat;
+	background-image: url('motionCaptcha-shapes.jpg') !important;
+	padding:1px;
+	display: block;
+	border: 4px solid #433e45;
+	-webkit-border-radius: 4px;
+	   -moz-border-radius: 4px;
+			border-radius: 4px;
+}
+
+#mc-canvas.mc-invalid {
+	border: 4px solid #aa4444;
+}
+/* Green border when valid */
+#mc-canvas.mc-valid {
+	border: 4px solid #44aa44;
+}
+/* The shapes: */
+#mc-canvas.triangle     { background-position:  10px   10px }
+#mc-canvas.x            { background-position:-200px   10px }
+#mc-canvas.rectangle    { background-position:-400px   10px }
+#mc-canvas.circle       { background-position:-600px   10px }
+#mc-canvas.check        { background-position:  10px -150px }
+#mc-canvas.caret        { background-position:-200px -150px }
+#mc-canvas.zigzag       { background-position:-400px -150px }
+#mc-canvas.arrow        { background-position:-600px -150px }
+#mc-canvas.leftbracket  { background-position:  10px -300px }
+#mc-canvas.rightbracket { background-position:-200px -300px }
+#mc-canvas.v            { background-position:-400px -300px }
+#mc-canvas.delete       { background-position:-600px -300px }
+#mc-canvas.leftbrace    { background-position:  10px -450px }
+#mc-canvas.rightbrace   { background-position:-200px -450px }
+#mc-canvas.star         { background-position:-400px -450px }
+#mc-canvas.pigtail      { background-position:-600px -450px }
