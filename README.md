@@ -148,6 +148,16 @@ You can also use simple_form:
 </script>
 ```
 
+5. For precompile assets in production environment make sure you use a new version of gem uglifier:
+
+```ruby
+gem 'uglifier', '~> 3.0.4'
+```
+
+## Sites that use this gem
+
+* [Artavita.com](http://artavita.com/) - invitation form (http://www.artavita.com/invite/new) and contact form in exhibit page (http://www.artavita.com/exhibits)
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
