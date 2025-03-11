@@ -1,13 +1,13 @@
 # Unity Captcha
 
-Unity Captcha is a gem that use two levels of Captcha. First level is about Left Hemisphere: Logic and Math. Second level is about Right Hemisphere: Intuition and Drawing. This two levels functioning in complete harmony creates unity and this is the base design of this Captcha.
+Unity Captcha is a gem that uses two levels of Captcha:
 
-The Left Hemisphere Level use a simple question of addition and multiplication. This works in the server side.
+1. **Left Hemisphere Level**: Logic and Math - A simple math question (addition or multiplication) handled on the server side.
+2. **Right Hemisphere Level**: Intuition and Drawing - Uses MotionCAPTCHA, requiring users to draw a shape they see in a canvas (client-side verification).
 
-The Right Hemisphere Level use MotionCAPTCHA (https://github.com/wjcrowcroft/MotionCAPTCHA), that is a jQuery CAPTCHA plugin that requires users to sketch the shape they see in the canvas in order to submit a form. This works in the client side.
+These two levels, functioning in harmony, create a secure and engaging captcha experience.
 
-Dra. Jill Bolte Taylor got a research opportunity to study from inside of her brain how Left and Right Hemisphere works. I recommend to watch her in this video: https://www.ted.com/talks/jill_bolte_taylor_s_powerful_stroke_of_insight#t-1102370
-
+Inspired by Dr. Jill Bolte Taylor's research on brain hemispheres. Learn more: [TED Talk](https://www.ted.com/talks/jill_bolte_taylor_s_powerful_stroke_of_insight)
 
 ## Installation
 
@@ -19,149 +19,165 @@ gem 'unity-captcha'
 
 And then execute:
 
-    $ bundle
+```bash
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install unity-captcha
+```bash
+$ gem install unity-captcha
+```
 
 ## Usage
 
-For the First level -  Left Hemisphere: Logic and Math ( Server Side ) we use some code in the controller and the view.
+### Quick Start with `captcha_for` Helper
 
-1. In your controller, for example if you have a method inside the controller called 'send_invite':
+The gem now provides a simple `captcha_for` helper that automatically adds all required assets and markup:
+
+```erb
+<%= form_tag(send_invite_path, method: :post, id: "mc-form") do %>
+  <%= label_tag :friend_email, "Email" %>
+  <%= text_field_tag :friend_email %>
+  
+  <%= captcha_for %>
+  
+  <%= submit_tag "Send Invitation" %>
+<% end %>
+```
+
+In your controller:
 
 ```ruby
 class InviteController < ApplicationController
-  def new
-    @captcha = Unity::Captcha::Captcha.new
-  end
   def send_invite
     @captcha = Unity::Captcha::Captcha.decrypt(params[:captcha_secret])
-    email = params[:friend_email]
+    
     unless @captcha.correct?(params[:captcha])
-      @captcha = Unity::Captcha::Captcha.new
-      redirect_to invite_url, :alert => "Please make sure you entered correct value for captcha."
-    else  
-      InviteMailer.invite_email(current_user, email).deliver_now
-      flash[:notice] = "Thank you for inviting your friend! Please feel free to invite more!"
-      redirect_to invite_url
-    end  
+      redirect_to invite_url, alert: "Please enter the correct captcha value."
+    else
+      # Process your form...
+      redirect_to success_url, notice: "Form submitted successfully!"
+    end
   end
 end
 ```
 
-2. Ask the question in the form, example:
+### Form Builder Integration
+
+Works with form builders like simple_form:
 
 ```erb
-  <%= form_tag(send_invite_path, :method => :post) do %>
-    <%= label_tag :friend_email, "Email" %>
-	<%= text_field_tag :friend_email, nil, :size =>50, :class => "placeholder" %>
-	<%= label_tag :question, "Question: "+@captcha.question %>
-	<%= text_field_tag :captcha %>
-	<%= hidden_field_tag :captcha_secret, @captcha.encrypt  %>
-	
-	<%= submit_tag "Send Invitation" %>
-  <% end %>
+<%= simple_form_for(@invite, html: {id: 'mc-form'}) do |f| %>
+  <%= f.input :email %>
+  
+  <%= captcha_for(f) %>
+  
+  <%= f.button :submit %>
+<% end %>
 ```
 
-For the Second level -  Right Hemisphere: Intuition and Drawing ( Cliend Side ) we just need to add some code in the form and make sure to add the plugin scripts: (MotionCAPTCHA is supported down to jQuery 1.4)
-
-1. Adding plugin scripts ( usually added in application.html.erb ):
+### Customization Options
 
 ```erb
-    <%= javascript_include_tag "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"%>
-    <%= stylesheet_link_tag "jquery.motionCaptcha.1.0" %>
-    <%= javascript_include_tag "jquery.motionCaptcha.1.0" %>
-    <%= javascript_include_tag "jquery.placeholder.1.1.1.min" %>	
+<%= captcha_for(f, {
+  # Canvas appearance
+  label: 'Draw the shape to verify:',
+  canvas_id: 'my-custom-canvas',
+  form_id: 'my-form-id',
+  html_options: { class: 'custom-canvas', style: 'border: 3px solid #333' },
+  
+  # Shape options
+  shapes: ['triangle', 'x', 'rectangle', 'circle', 'check'],
+  
+  # Messages
+  error_msg: 'Not quite right, try again.',
+  success_msg: 'Perfect! Form submitted.',
+  
+  # Asset options
+  skip_jquery: true, # Skip jQuery if you already include it
+  
+  # Form submission
+  action_path: custom_submit_path
+}) %>
 ```
 
-2. Replace the submit_tag with the CAPTCHA canvas and a hidden_field_tag, like the following code ( remember to add :id => "mc-form" in form):
+### Available Shapes
 
-```erb
-  <%= form_tag(send_invite_path, :method => :post, :id => "mc-form") do %>
-    <%= label_tag :friend_email, "Email" %>
-	<%= text_field_tag :friend_email, nil, :size =>50, :class => "placeholder" %
-	<%= label_tag :question, "Question: "+@captcha.question %>
-	<%= text_field_tag :captcha %>
-	<%= hidden_field_tag :captcha_secret, @captcha.encrypt  %>
-	
-	<p>CAPTCHA: Please draw the shape in the box to submit the form: (<a onclick="window.location.reload()" href="#" title="Click for a new shape">new shape</a>)</p>
-	<canvas id="mc-canvas"></canvas>
-	<%= hidden_field_tag 'mc-action', send_invite_path.to_s %>
-  <% end %>
+The following shapes are available (you can use any subset):
+
+```
+'triangle', 'x', 'rectangle', 'circle', 'check', 'caret', 'zigzag', 
+'arrow', 'leftbracket', 'rightbracket', 'v', 'delete', 'star', 'pigtail'
 ```
 
-You can also use simple_form:
+## How It Works
 
-```erb
-  <%= simple_form_for send_invite_path,  :html => {:class => 'form-horizontal',:id => "mc-form" } do |f| %>
-    <%= f.input :friend_email, label: 'Email',:class => "placeholder", :required => true %>		
-	<%= f.input :captcha, label: @captcha.question, :required => true %>
-	<%= f.input :captcha_secret, :as => :hidden, :input_html => { :value => @captcha.encrypt } %>
-	
-	<p>CAPTCHA: Please draw the shape in the box to submit the form: (<a onclick="window.location.reload()" href="#" title="Click for a new shape">new shape</a>)</p>
-    <canvas id="mc-canvas"></canvas>
-    <%= f.input :mc_action, :as => :hidden, :input_html => { :value => send_invite_path.to_s }	%>
-  <% end %>
+Unity Captcha combines:
+
+1. **Math Challenge**: Server-side validation of a simple math problem
+2. **Drawing Challenge**: Client-side validation of a drawn shape using pattern recognition
+
+Both must be correct for the form to submit, providing dual-layer security.
+
+## Advanced Usage
+
+For more control or custom implementations, you can use the traditional approach:
+
+```ruby
+# Controller
+def new
+  @captcha = Unity::Captcha::Captcha.new
+end
 ```
 
-3. Initialize the javascrit component in the same form:
-
 ```erb
-<script type="text/javaScript">
+<%# View %>
+<%= form_tag(submit_path, method: :post, id: "mc-form") do %>
+  <%# Math captcha %>
+  <%= label_tag :captcha, @captcha.question %>
+  <%= text_field_tag :captcha %>
+  <%= hidden_field_tag :captcha_secret, @captcha.encrypt %>
+  
+  <%# Drawing captcha %>
+  <p>Please draw the shape: <a onclick="window.location.reload()" href="#">(new shape)</a></p>
+  <canvas id="mc-canvas"></canvas>
+  <%= hidden_field_tag 'mc-action', submit_path %>
+  
+  <%= submit_tag "Submit" %>
+<% end %>
+
+<%# Initialize JavaScript %>
+<script>
   jQuery(document).ready(function($) {
     $('#mc-form').motionCaptcha({
-	  shapes: ['triangle', 'x', 'rectangle', 'circle', 'check', 'zigzag', 'arrow', 'delete', 'pigtail', 'star']
-	});
-	$("input.placeholder").placeholder();			
+      shapes: ['triangle', 'x', 'rectangle', 'circle', 'check']
+    });
   });
 </script>
 ```
 
-4. Other options are available to initialize the canvas javascript component:
+Make sure to include the required assets:
 
 ```erb
-<script type="text/javaScript">
-  jQuery(document).ready(function($) {
-        $('#mc-form').motioncaptcha({
-            // Basics:
-            action: '#mc-action',        // the ID of the input containing the form action
-            divId: '#mc',                // if you use an ID other than '#mc' for the placeholder, pass it in here
-            cssClass: '.mc-active',      // this CSS class is applied to the 'mc' div when the plugin is active
-            canvasId: '#mc-canvas',      // the ID of the MotionCAPTCHA canvas element
-            
-            // An array of shape names that you want MotionCAPTCHA to use:
-            shapes: ['triangle', 'x', 'rectangle', 'circle', 'check', 'caret', 'zigzag', 'arrow', 'leftbracket', 'rightbracket', 'v', 'delete', 'star', 'pigtail'],
-            
-            // These messages are displayed inside the canvas after a user finishes drawing:
-            errorMsg: 'Please try again.',
-            successMsg: 'Captcha passed!',
-            
-            // This message is displayed if the user's browser doesn't support canvas:
-            noCanvasMsg: "Your browser doesn't support <canvas> - try Chrome, FF4, Safari or IE9."
-            
-            // This could be any HTML string (eg. '<label>Draw this shit yo:</label>'):
-            label: '<p>Please draw the shape in the box to submit the form:</p>'
-        });
-  });	
-</script>
+<%= javascript_include_tag "jquery.min" %>
+<%= stylesheet_link_tag "jquery.motionCaptcha.1.0" %>
+<%= javascript_include_tag "jquery.motionCaptcha.1.0", "jquery.placeholder.1.1.1.min" %>
 ```
 
-## Sites that use this gem
+## Sites Using Unity Captcha
 
-* [Artavita.com](http://artavita.com/) - invitation form (http://www.artavita.com/invite/new) and contact form in exhibit page (http://www.artavita.com/exhibits)
+* [Artavita.com](http://artavita.com/) - Invitation form and exhibit contact forms
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/papayalabs/unity-captcha. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/papayalabs/unity-captcha. Contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 
