@@ -1,5 +1,7 @@
 require "unity/captcha/version"
 require "unity/captcha/engine"
+require "base64"
+require "yaml"
 
 module Unity
   module Captcha
