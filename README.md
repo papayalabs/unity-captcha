@@ -41,8 +41,6 @@ The gem now provides a simple `captcha_for` helper that automatically adds all r
   <%= text_field_tag :friend_email %>
   
   <%= captcha_for %>
-  
-  <%= submit_tag "Send Invitation" %>
 <% end %>
 ```
 
@@ -72,8 +70,6 @@ Works with form builders like simple_form:
   <%= f.input :email %>
   
   <%= captcha_for(f) %>
-  
-  <%= f.button :submit %>
 <% end %>
 ```
 
@@ -143,8 +139,6 @@ end
   <p>Please draw the shape: <a onclick="window.location.reload()" href="#">(new shape)</a></p>
   <canvas id="mc-canvas"></canvas>
   <%= hidden_field_tag 'mc-action', submit_path %>
-  
-  <%= submit_tag "Submit" %>
 <% end %>
 
 <%# Initialize JavaScript %>
